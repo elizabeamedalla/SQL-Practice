@@ -44,9 +44,10 @@ where the fee is less than 20% of the facility's monthly maintenance cost?
 Return the facid, facility name, member cost, and monthly maintenance of the
 facilities in question. */
 
-SELECT `facid`, `name`, `membercost`, `monthlymaintenance`
-FROM `Facilities`
-WHERE `membercost` < (`monthlymaintenance` * .20)
+SELECT facid, name, membercost, monthlymaintenance
+FROM Facilities
+WHERE membercost > 0
+AND membercost / monthlymaintenance < 0.2
 
 
 /* Q4: How can you retrieve the details of facilities with ID 1 and 5?
@@ -98,24 +99,35 @@ the guest user's ID is always 0. Include in your output the name of the
 facility, the name of the member formatted as a single column, and the cost.
 Order by descending cost, and do not use any subqueries. */
 
-SELECT name, concat(firstname, ' ', surname), joindate, CAST( starttime AS DATE ) AS date_, (
-CASE WHEN b.memid =0 THEN guestcost ELSE membercost END) AS cost_
-FROM country_club.Facilities a
-INNER JOIN country_club.Bookings b ON a.facid = b.facid
-INNER JOIN country_club.Members c ON b.memid = c.memid
-WHERE (CAST( starttime AS DATE ) =  '2012-09-14')
-AND (CASE WHEN b.memid =0 THEN guestcost ELSE membercost END > 30)
-ORDER BY cost_ DESC
+SELECT Facilities.name AS facility, CONCAT( Members.firstname,  ' ', Members.surname ) AS name, 
+CASE WHEN Bookings.memid =0
+THEN Facilities.guestcost * Bookings.slots
+ELSE Facilities.membercost * Bookings.slots
+END AS cost
+FROM Bookings
+INNER JOIN Facilities ON Bookings.facid = Facilities.facid
+AND Bookings.starttime LIKE  '2012-09-14%'
+AND (((Bookings.memid =0) AND (Facilities.guestcost * Bookings.slots >30))
+OR ((Bookings.memid !=0) AND (Facilities.membercost * Bookings.slots >30)))
+INNER JOIN Members ON Bookings.memid = Members.memid
+ORDER BY cost DESC
 
 /* Q9: This time, produce the same result as in Q8, but using a subquery. */
 
-SELECT name, concat(firstname, ' ', surname), joindate, CAST( starttime AS DATE ) AS date_, (
-CASE WHEN b.memid = 0 THEN guestcost ELSE membercost END) AS cost_
-FROM country_club.Facilities a
-INNER JOIN (SELECT * FROM country_club.Bookings WHERE CAST(starttime AS DATE) = '2012-09-14') b ON a.facid = b.facid
-INNER JOIN country_club.Members c ON b.memid = c.memid
-WHERE (CASE WHEN b.memid =0 THEN guestcost ELSE membercost END > 30)
-ORDER BY cost_ DESC
+SELECT * 
+FROM (
+SELECT Facilities.name AS facility, CONCAT( Members.firstname,  ' ', Members.surname ) AS name, 
+CASE WHEN Bookings.memid =0
+THEN Facilities.guestcost * Bookings.slots
+ELSE Facilities.membercost * Bookings.slots
+END AS cost
+FROM Bookings
+INNER JOIN Facilities ON Bookings.facid = Facilities.facid
+AND Bookings.starttime LIKE  '2012-09-14%'
+INNER JOIN Members ON Bookings.memid = Members.memid
+) AS sub
+WHERE sub.cost >30
+ORDER BY sub.cost DESC
 
 /* Q10: Produce a list of facilities with a total revenue less than 1000.
 The output of facility name and total revenue, sorted by revenue. Remember
@@ -125,6 +137,6 @@ SELECT * FROM(
     SELECT name, sum(CASE WHEN b.memid =0 THEN guestcost ELSE membercost END) AS cost_ FROM country_club.Facilities a
 	INNER JOIN country_club.Bookings b ON a.facid = b.facid
 	INNER JOIN country_club.Members c ON b.memid = c.memid
-	GROUP BY name) AS t1
+	GROUP BY name) AS sub1
 WHERE cost_ < 1000
 ORDER BY cost_ 
