@@ -133,10 +133,19 @@ ORDER BY sub.cost DESC
 The output of facility name and total revenue, sorted by revenue. Remember
 that there's a different cost for guests and members! */
 
-SELECT * FROM(
-    SELECT name, sum(CASE WHEN b.memid =0 THEN guestcost ELSE membercost END) AS cost_ FROM country_club.Facilities a
-	INNER JOIN country_club.Bookings b ON a.facid = b.facid
-	INNER JOIN country_club.Members c ON b.memid = c.memid
-	GROUP BY name) AS sub1
-WHERE cost_ < 1000
-ORDER BY cost_ 
+SELECT * 
+FROM (
+SELECT sub.facility, SUM( sub.cost ) AS total_revenue
+FROM (
+SELECT Facilities.name AS facility, 
+CASE WHEN Bookings.memid =0
+THEN Facilities.guestcost * Bookings.slots
+ELSE Facilities.membercost * Bookings.slots
+END AS cost
+FROM Bookings
+INNER JOIN Facilities ON Bookings.facid = Facilities.facid
+INNER JOIN Members ON Bookings.memid = Members.memid
+) AS sub1
+GROUP BY sub.facility
+) AS sub2
+WHERE sub2.total_revenue <1000
