@@ -102,7 +102,8 @@ Order by descending cost, and do not use any subqueries. */
 SELECT Facilities.name AS facility, CONCAT( Members.firstname,  ' ', Members.surname ) AS name, 
 CASE WHEN Bookings.memid =0
 THEN Facilities.guestcost * Bookings.slots
-ELSE Facilities.membercost * Bookings.slots
+CASE WHEN Bookings.memid !=0
+THEN Facilities.membercost * Bookings.slots
 END AS cost
 FROM Bookings
 INNER JOIN Facilities ON Bookings.facid = Facilities.facid
@@ -112,6 +113,7 @@ OR ((Bookings.memid !=0) AND (Facilities.membercost * Bookings.slots >30)))
 INNER JOIN Members ON Bookings.memid = Members.memid
 ORDER BY cost DESC
 
+
 /* Q9: This time, produce the same result as in Q8, but using a subquery. */
 
 SELECT * 
@@ -119,7 +121,8 @@ FROM (
 SELECT Facilities.name AS facility, CONCAT( Members.firstname,  ' ', Members.surname ) AS name, 
 CASE WHEN Bookings.memid =0
 THEN Facilities.guestcost * Bookings.slots
-ELSE Facilities.membercost * Bookings.slots
+CASE WHEN Bookings.memid !=0
+THEN Facilities.membercost * Bookings.slots
 END AS cost
 FROM Bookings
 INNER JOIN Facilities ON Bookings.facid = Facilities.facid
@@ -140,7 +143,8 @@ FROM (
 SELECT Facilities.name AS facility, 
 CASE WHEN Bookings.memid =0
 THEN Facilities.guestcost * Bookings.slots
-ELSE Facilities.membercost * Bookings.slots
+CASE WHEN Bookings.memid !=0
+THEN Facilities.membercost * Bookings.slots
 END AS cost
 FROM Bookings
 INNER JOIN Facilities ON Bookings.facid = Facilities.facid
