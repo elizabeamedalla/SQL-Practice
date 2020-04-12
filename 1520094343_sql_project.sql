@@ -46,8 +46,8 @@ facilities in question. */
 
 SELECT facid, name, membercost, monthlymaintenance
 FROM Facilities
-WHERE membercost > 0
-AND membercost / monthlymaintenance < 0.2
+WHERE membercost != 0
+AND membercost < 0.20 * monthlymaintenance
 
 
 /* Q4: How can you retrieve the details of facilities with ID 1 and 5?
@@ -102,7 +102,7 @@ Order by descending cost, and do not use any subqueries. */
 SELECT Facilities.name AS facility, CONCAT( Members.firstname,  ' ', Members.surname ) AS name, 
 CASE WHEN Bookings.memid =0
 THEN Facilities.guestcost * Bookings.slots
-CASE WHEN Bookings.memid !=0
+WHEN Bookings.memid !=0
 THEN Facilities.membercost * Bookings.slots
 END AS cost
 FROM Bookings
@@ -121,7 +121,7 @@ FROM (
 SELECT Facilities.name AS facility, CONCAT( Members.firstname,  ' ', Members.surname ) AS name, 
 CASE WHEN Bookings.memid =0
 THEN Facilities.guestcost * Bookings.slots
-CASE WHEN Bookings.memid !=0
+WHEN Bookings.memid !=0
 THEN Facilities.membercost * Bookings.slots
 END AS cost
 FROM Bookings
@@ -143,7 +143,7 @@ FROM (
 SELECT Facilities.name AS facility, 
 CASE WHEN Bookings.memid =0
 THEN Facilities.guestcost * Bookings.slots
-CASE WHEN Bookings.memid !=0
+WHEN Bookings.memid !=0
 THEN Facilities.membercost * Bookings.slots
 END AS cost
 FROM Bookings
